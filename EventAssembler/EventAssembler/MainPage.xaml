@@ -9,11 +9,6 @@
             Padding="30,0"
             VerticalOptions="Center">
 
-            <Label
-                x:Name="InfoText"
-                Text="Welcome to Event Assembler"
-                HorizontalOptions="Center" />
-
             <Button
                 x:Name="LibraryBtn"
                 Text="Select Library"
@@ -34,6 +29,13 @@
                 SemanticProperties.Hint="Select event script"
                 Clicked="OnTextClicked"
                 HorizontalOptions="Center" />
+
+            <HorizontalStackLayout
+                HorizontalOptions="Center">
+                <Label Text="Use ColorzCore (Slow)" />
+                <CheckBox
+                    x:Name="useColorzCore" />
+            </HorizontalStackLayout>
 
             <Button
                 x:Name="AssembleBtn"
@@ -63,6 +65,11 @@
                 Text="Disassemble"
                 SemanticProperties.Hint="Disassemble from specific offset to event script"
                 Clicked="OnDisassembleClicked"
+                HorizontalOptions="Center" />
+
+            <Label
+                x:Name="InfoText"
+                Text="Welcome to Event Assembler"
                 HorizontalOptions="Center" />
 
         </VerticalStackLayout>

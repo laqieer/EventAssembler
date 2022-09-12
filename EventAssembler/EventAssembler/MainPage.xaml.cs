@@ -1,17 +1,18 @@
-﻿using System;
-using System.IO;
+﻿using System.Text;
 using Nintenlord.Event_Assembler.Core;
 using Nintenlord.Event_Assembler.Core.Code.Language;
-using Nintenlord.Utility;
 using Core = Nintenlord.Event_Assembler.Core;
 using Nintenlord.Event_Assembler.Core.IO.Logs;
+using ColorzCore;
+using ColorzCore.IO;
 
 namespace EventAssembler;
 
 public partial class MainPage : ContentPage
 {
-    String textFile, binaryFile, game;
+    String rawsFolder, textFile, binaryFile, game;
     StringWriter lastMessages;
+    FileResult scriptFile;
 
     public MainPage()
 	{
@@ -46,7 +47,8 @@ public partial class MainPage : ContentPage
             var result = await SelectFile(new[] { ".raws" });
             if (result != null)
             {
-                Core.Program.LoadCodes(Path.GetDirectoryName(result.FullPath), ".txt", true, false);
+                rawsFolder = Path.GetDirectoryName(result.FullPath);
+                Program.LoadCodes(rawsFolder, ".txt", true, false);
                 InfoText.Text = $"Loaded {result.FullPath}";
             }
         }
@@ -73,7 +75,7 @@ public partial class MainPage : ContentPage
                     await stream.ReadAsync(buffer, 0, buffer.Length);
                     stream.Close();
                 }
-                var code = System.Text.Encoding.Default.GetString(buffer);
+                var code = Encoding.Default.GetString(buffer);
                 var codes = new Dictionary<string, string> {
                     { "AFEJ", "FE6" },
                     { "AE7E", "FE7" },
@@ -103,6 +105,7 @@ public partial class MainPage : ContentPage
             if (result != null)
             {
                 textFile = result.FullPath;
+                scriptFile = result;
                 InfoText.Text = $"Loaded {textFile}";
             }
         }
@@ -114,11 +117,11 @@ public partial class MainPage : ContentPage
         SemanticScreenReader.Announce(InfoText.Text);
     }
 
-    private void OnAssembleClicked(object sender, EventArgs e)
+    private async void OnAssembleClicked(object sender, EventArgs e)
     {
         try
         {
-            if (!Core.Program.CodesLoaded)
+            if (rawsFolder == null || !Core.Program.CodesLoaded)
             {
                 throw new Exception("Please select library");
             }
@@ -134,11 +137,33 @@ public partial class MainPage : ContentPage
             {
                 throw new Exception("Script file doesn't exist: " + textFile);
             }
-            lastMessages = new StringWriter();
-            var messageLog = new TextWriterMessageLog(lastMessages);
-            Core.Program.Assemble(textFile, binaryFile, game, messageLog);
-            messageLog.PrintAll();
-            InfoText.Text = lastMessages.ToString();
+            if (useColorzCore.IsChecked)
+            {
+                StringBuilder sb = new StringBuilder();
+                TextWriter errorStream = new StringWriter(sb);
+                var inStream = await scriptFile.OpenReadAsync();
+                IOutput output = new ROM(File.Open(binaryFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None));
+                Log log = new()
+                {
+                    Output = errorStream,
+                    WarningsAreErrors = false,
+                    NoColoredTags = true
+                };
+                EAInterpreter myInterpreter = new EAInterpreter(output, game, rawsFolder, ".txt", inStream, textFile, log);
+                bool success = myInterpreter.Interpret();
+                inStream.Close();
+                output.Close();
+                errorStream.Close();
+                InfoText.Text = success ? "success": "failure" + Environment.NewLine + sb.ToString();
+            }
+            else
+            {
+                lastMessages = new StringWriter();
+                var messageLog = new TextWriterMessageLog(lastMessages);
+                Program.Assemble(textFile, binaryFile, game, messageLog);
+                messageLog.PrintAll();
+                InfoText.Text = lastMessages.ToString();
+            } 
         }
         catch (Exception ex)
         {
@@ -169,7 +194,7 @@ public partial class MainPage : ContentPage
             }
             lastMessages = new StringWriter();
             var messageLog = new TextWriterMessageLog(lastMessages);
-            Core.Program.Disassemble(binaryFile, textFile, game, true, fullChapter.IsChecked ? DisassemblyMode.Structure : DisassemblyMode.ToEnd, Convert.ToInt32(offsetEntry.Text, 16), Priority.none, 4096, messageLog);
+            Program.Disassemble(binaryFile, textFile, game, true, fullChapter.IsChecked ? DisassemblyMode.Structure : DisassemblyMode.ToEnd, Convert.ToInt32(offsetEntry.Text, 16), Priority.none, 4096, messageLog);
             messageLog.PrintAll();
             InfoText.Text = lastMessages.ToString();
         }

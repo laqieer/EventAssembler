@@ -4,3 +4,6 @@
 [submodule "EventAssembler/EAStandardLibrary"]
 	path = Library/EAStandardLibrary
 	url = https://github.com/StanHash/EAStandardLibrary.git
+[submodule "Core/ColorzCore"]
+	path = Core/ColorzCore
+	url = https://github.com/FireEmblemUniverse/ColorzCore.git
