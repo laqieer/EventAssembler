@@ -19,25 +19,15 @@ public partial class MainPage : ContentPage
 		InitializeComponent();
     }
 
-    public async Task<FileResult> SelectFile(IEnumerable<string> exts)
+    public async Task<FileResult> SelectFile(string title, FilePickerFileType fileType)
     {
         await Permissions.RequestAsync<Permissions.StorageRead>();
         await Permissions.RequestAsync<Permissions.StorageWrite>();
 
-        var customFileType = new FilePickerFileType(
-            new Dictionary<DevicePlatform, IEnumerable<string>>
-            {
-                    { DevicePlatform.iOS, exts },
-                    { DevicePlatform.Android, exts },
-                    { DevicePlatform.WinUI, exts },
-                    { DevicePlatform.Tizen, exts },
-                    { DevicePlatform.macOS, exts },
-            });
-
         PickOptions options = new()
         {
-            PickerTitle = $"Please select {exts} file",
-            FileTypes = customFileType,
+            PickerTitle = $"Please select {title} file",
+            FileTypes = fileType,
         };
 
         return await FilePicker.Default.PickAsync(options);
@@ -47,12 +37,26 @@ public partial class MainPage : ContentPage
 	{
         try
         {
-            var result = await SelectFile(new[] { ".raws" });
+            var result = await SelectFile(
+                "language raw",
+                new FilePickerFileType(
+                    new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                            { DevicePlatform.iOS, new[] { "public.plain-text" } },
+                            { DevicePlatform.Android, new[] { "text/plain" } },
+                            { DevicePlatform.WinUI, new[] { ".raws", ".txt" } },
+                            { DevicePlatform.Tizen, new[] { "*/*" } },
+                            { DevicePlatform.macOS, new[] { "raws", "txt" } },
+                    }));
             if (result != null)
             {
-                rawsFolder = Path.GetDirectoryName(result.FullPath);
-                Core.Program.LoadCodes(rawsFolder, ".txt", true, false);
-                InfoText.Text = $"Loaded {result.FullPath}";
+                if (result.FileName.EndsWith("raws", StringComparison.OrdinalIgnoreCase) ||
+                    result.FileName.EndsWith("txt", StringComparison.OrdinalIgnoreCase))
+                {
+                    rawsFolder = Path.GetDirectoryName(result.FullPath);
+                    Core.Program.LoadCodes(rawsFolder, ".txt", true, false);
+                    InfoText.Text = $"Loaded {result.FullPath}";
+                }
             }
         }
         catch (Exception ex)
@@ -67,29 +71,43 @@ public partial class MainPage : ContentPage
     {
         try
         {
-            var result = await SelectFile(new[] { ".gba", "bin" });
+            var result = await SelectFile(
+                "game ROM",
+                new FilePickerFileType(
+                    new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                            { DevicePlatform.iOS, new[] { "public.data" } },
+                            { DevicePlatform.Android, new[] { "application/octet-stream" } },
+                            { DevicePlatform.WinUI, new[] { ".gba", ".bin" } },
+                            { DevicePlatform.Tizen, new[] { "*/*" } },
+                            { DevicePlatform.macOS, new[] { "gba", "bin" } },
+                    }));
             if (result != null)
             {
-                binaryFile = result.FullPath;
-                var buffer = new byte[4];
-                using (var stream = await result.OpenReadAsync())
+                if (result.FileName.EndsWith("gba", StringComparison.OrdinalIgnoreCase) ||
+                    result.FileName.EndsWith("bin", StringComparison.OrdinalIgnoreCase))
                 {
-                    stream.Seek(0xAC, SeekOrigin.Begin);
-                    await stream.ReadAsync(buffer, 0, buffer.Length);
-                    stream.Close();
+                    binaryFile = result.FullPath;
+                    var buffer = new byte[4];
+                    using (var stream = await result.OpenReadAsync())
+                    {
+                        stream.Seek(0xAC, SeekOrigin.Begin);
+                        await stream.ReadAsync(buffer, 0, buffer.Length);
+                        stream.Close();
+                    }
+                    var code = Encoding.Default.GetString(buffer);
+                    var codes = new Dictionary<string, string> {
+                        { "AFEJ", "FE6" },
+                        { "AE7E", "FE7" },
+                        { "BE8E", "FE8" },
+                        { "AE7J", "FE7J" },
+                        { "BE8J", "FE8J" },
+                    };
+                    if (!codes.ContainsKey(code))
+                        throw new Exception("Unsupported game: " + code);
+                    game = codes[code];
+                    InfoText.Text = $"Loaded {game}: {binaryFile}";
                 }
-                var code = Encoding.Default.GetString(buffer);
-                var codes = new Dictionary<string, string> {
-                    { "AFEJ", "FE6" },
-                    { "AE7E", "FE7" },
-                    { "BE8E", "FE8" },
-                    { "AE7J", "FE7J" },
-                    { "BE8J", "FE8J" },
-                };
-                if (!codes.ContainsKey(code))
-                    throw new Exception("Unsupported game: " + code);
-                game = codes[code];
-                InfoText.Text = $"Loaded {game}: {binaryFile}";
             }
         }
         catch (Exception ex)
@@ -104,12 +122,26 @@ public partial class MainPage : ContentPage
     {
         try
         {
-            var result = await SelectFile(new[] { ".event", ".txt" });
+            var result = await SelectFile(
+                "event script",
+                new FilePickerFileType(
+                    new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                            { DevicePlatform.iOS, new[] { "public.plain-text" } },
+                            { DevicePlatform.Android, new[] { "text/plain" } },
+                            { DevicePlatform.WinUI, new[] { ".event", ".txt" } },
+                            { DevicePlatform.Tizen, new[] { "*/*" } },
+                            { DevicePlatform.macOS, new[] { "event", "txt" } },
+                    }));
             if (result != null)
             {
-                textFile = result.FullPath;
-                scriptFile = result;
-                InfoText.Text = $"Loaded {textFile}";
+                if (result.FileName.EndsWith("event", StringComparison.OrdinalIgnoreCase) ||
+                    result.FileName.EndsWith("txt", StringComparison.OrdinalIgnoreCase))
+                {
+                    textFile = result.FullPath;
+                    scriptFile = result;
+                    InfoText.Text = $"Loaded {textFile}";
+                }
             }
         }
         catch (Exception ex)
