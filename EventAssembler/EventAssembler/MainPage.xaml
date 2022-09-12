@@ -57,7 +57,7 @@
                 <Label Text="Full Chapter" />
                 <CheckBox
                     x:Name="fullChapter"
-                    IsChecked="true"/>
+                    IsChecked="true" />
             </HorizontalStackLayout>
 
             <Button
@@ -69,7 +69,7 @@
 
             <Label
                 x:Name="InfoText"
-                Text="Welcome to Event Assembler"
+                Text="https://github.com/laqieer/EventAssembler/"
                 HorizontalOptions="Center" />
 
         </VerticalStackLayout>
