@@ -1,6 +1,8 @@
 ﻿using Android.App;
 using Android.Runtime;
 
+[assembly: UsesPermission(Android.Manifest.Permission.ReadExternalStorage)]
+
 namespace EventAssembler;
 
 [Application]
