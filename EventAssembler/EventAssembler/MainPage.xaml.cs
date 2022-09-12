@@ -21,6 +21,9 @@ public partial class MainPage : ContentPage
 
     public async Task<FileResult> SelectFile(IEnumerable<string> exts)
     {
+        await Permissions.RequestAsync<Permissions.StorageRead>();
+        await Permissions.RequestAsync<Permissions.StorageWrite>();
+
         var customFileType = new FilePickerFileType(
             new Dictionary<DevicePlatform, IEnumerable<string>>
             {
