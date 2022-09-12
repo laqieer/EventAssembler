@@ -1,0 +1,6 @@
+[submodule "Core/Event-Assembler"]
+	path = Core/Event-Assembler
+	url = https://github.com/laqieer/Event-Assembler.git
+[submodule "EventAssembler/EAStandardLibrary"]
+	path = Library/EAStandardLibrary
+	url = https://github.com/StanHash/EAStandardLibrary.git

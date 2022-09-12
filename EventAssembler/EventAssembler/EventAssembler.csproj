@@ -48,4 +48,9 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Core\Event-Assembler\Event Assembler\Core\Core.csproj" />
+	  <ProjectReference Include="..\..\Core\Event-Assembler\Nintenlord\Nintenlord.csproj" />
+	</ItemGroup>
+
 </Project>
