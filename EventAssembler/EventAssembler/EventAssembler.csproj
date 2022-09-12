@@ -15,7 +15,7 @@
 		<ApplicationTitle>EventAssembler</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.eventassembler</ApplicationId>
+		<ApplicationId>com.laqieer.eventassembler</ApplicationId>
 		<ApplicationIdGuid>7C54FB10-0451-45A2-B883-DDD10B30B824</ApplicationIdGuid>
 
 		<!-- Versions -->
@@ -32,7 +32,7 @@
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="..\..\Core\Event-Assembler\Event Assembler\Event Assembler\Sixth.ico" Color="#4b6043" />
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
