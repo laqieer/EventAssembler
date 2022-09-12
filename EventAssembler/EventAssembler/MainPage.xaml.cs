@@ -77,7 +77,7 @@ public partial class MainPage : ContentPage
                     new Dictionary<DevicePlatform, IEnumerable<string>>
                     {
                             { DevicePlatform.iOS, new[] { "public.data" } },
-                            { DevicePlatform.Android, new[] { "application/octet-stream" } },
+                            { DevicePlatform.Android, new[] { "application/*" } },
                             { DevicePlatform.WinUI, new[] { ".gba", ".bin" } },
                             { DevicePlatform.Tizen, new[] { "*/*" } },
                             { DevicePlatform.macOS, new[] { "gba", "bin" } },
