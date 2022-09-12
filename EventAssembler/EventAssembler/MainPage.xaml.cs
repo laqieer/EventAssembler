@@ -48,7 +48,7 @@ public partial class MainPage : ContentPage
             if (result != null)
             {
                 rawsFolder = Path.GetDirectoryName(result.FullPath);
-                Program.LoadCodes(rawsFolder, ".txt", true, false);
+                Core.Program.LoadCodes(rawsFolder, ".txt", true, false);
                 InfoText.Text = $"Loaded {result.FullPath}";
             }
         }
@@ -160,7 +160,7 @@ public partial class MainPage : ContentPage
             {
                 lastMessages = new StringWriter();
                 var messageLog = new TextWriterMessageLog(lastMessages);
-                Program.Assemble(textFile, binaryFile, game, messageLog);
+                Core.Program.Assemble(textFile, binaryFile, game, messageLog);
                 messageLog.PrintAll();
                 InfoText.Text = lastMessages.ToString();
             } 
@@ -194,7 +194,7 @@ public partial class MainPage : ContentPage
             }
             lastMessages = new StringWriter();
             var messageLog = new TextWriterMessageLog(lastMessages);
-            Program.Disassemble(binaryFile, textFile, game, true, fullChapter.IsChecked ? DisassemblyMode.Structure : DisassemblyMode.ToEnd, Convert.ToInt32(offsetEntry.Text, 16), Priority.none, 4096, messageLog);
+            Core.Program.Disassemble(binaryFile, textFile, game, true, fullChapter.IsChecked ? DisassemblyMode.Structure : DisassemblyMode.ToEnd, Convert.ToInt32(offsetEntry.Text, 16), Priority.none, 4096, messageLog);
             messageLog.PrintAll();
             InfoText.Text = lastMessages.ToString();
         }
