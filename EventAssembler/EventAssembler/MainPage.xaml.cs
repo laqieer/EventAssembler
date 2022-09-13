@@ -57,6 +57,10 @@ public partial class MainPage : ContentPage
                     Core.Program.LoadCodes(rawsFolder, ".txt", true, false);
                     InfoText.Text = $"Loaded {result.FullPath}";
                 }
+                else
+                {
+                    InfoText.Text = "Invalid language raw file type, must be *.txt or *.raws";
+                }
             }
         }
         catch (Exception ex)
@@ -108,6 +112,10 @@ public partial class MainPage : ContentPage
                     game = codes[code];
                     InfoText.Text = $"Loaded {game}: {binaryFile}";
                 }
+                else
+                {
+                    InfoText.Text = "Invalid game ROM file type, must be *.bin or *.gba";
+                }
             }
         }
         catch (Exception ex)
@@ -141,6 +149,10 @@ public partial class MainPage : ContentPage
                     textFile = result.FullPath;
                     scriptFile = result;
                     InfoText.Text = $"Loaded {textFile}";
+                }
+                else
+                {
+                    InfoText.Text = "Invalid event script file type, must be *.txt or *.event";
                 }
             }
         }
