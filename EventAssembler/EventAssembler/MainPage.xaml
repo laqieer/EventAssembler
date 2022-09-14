@@ -35,7 +35,7 @@
 
             <Picker 
                 x:Name="LibraryPicker"
-                Title="Select language raw version"
+                Title="Select library"
                 HorizontalOptions="Center">
                 <Picker.Items>
                     <x:String>Official</x:String>
