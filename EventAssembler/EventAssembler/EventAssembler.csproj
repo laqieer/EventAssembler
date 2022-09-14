@@ -58,10 +58,12 @@
 	  <ProjectReference Include="..\..\Core\Event-Assembler\Event Assembler\Core\Core.csproj" />
 	</ItemGroup>
 
-	<PropertyGroup Condition="$(TargetFramework.Contains('-windows')) and '$(Configuration)' == 'Release'">
-		<GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(Configuration)' == 'Release'">
 		<AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
 		<PackageCertificateThumbprint></PackageCertificateThumbprint>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' and '$(RuntimeIdentifierOverride)' != ''">
+		<RuntimeIdentifier>$(RuntimeIdentifierOverride)</RuntimeIdentifier>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
