@@ -18,6 +18,7 @@ public partial class MainPage : ContentPage
 		InitializeComponent();
     }
 
+    // TODO: Enable iCloud capabilities on iOS/macOS platform for File picker.
     public async Task<FileResult> SelectFile(string title, FilePickerFileType fileType)
     {
         await Permissions.RequestAsync<Permissions.StorageRead>();
