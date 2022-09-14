@@ -55,7 +55,7 @@ public partial class MainPage : ContentPage
                 if (result.FileName.EndsWith("txt", StringComparison.OrdinalIgnoreCase))
                 {
                     await LoadUserFile(result);
-                    Core.Program.LoadCodes(result.FullPath, ".txt", false, false);
+                    Core.Program.LoadCodes(result.FullPath, ".txt", false, false, false);
                     InfoText.Text = $"Loaded {result.FullPath}";
                 }
                 else
@@ -198,7 +198,7 @@ public partial class MainPage : ContentPage
                     WarningsAreErrors = false,
                     NoColoredTags = true
                 };
-                EAInterpreter myInterpreter = new EAInterpreter(output, game, FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", inStream, textFile, log);
+                EAInterpreter myInterpreter = new EAInterpreter(output, game, FileSystem.Current.CacheDirectory, false, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", inStream, textFile, log);
                 bool success = myInterpreter.Interpret();
                 inStream.Close();
                 output.Close();
@@ -210,7 +210,7 @@ public partial class MainPage : ContentPage
                 if (!Core.Program.CodesLoaded)
                 {
                     await LoadLanguageRaws();
-                    Core.Program.LoadCodes(FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", true, false);
+                    Core.Program.LoadCodes(FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", true, false, false);
                 }
                 lastMessages = new StringWriter();
                 var messageLog = new TextWriterMessageLog(lastMessages);
@@ -254,7 +254,7 @@ public partial class MainPage : ContentPage
             if (!Core.Program.CodesLoaded)
             {
                 await LoadLanguageRaws();
-                Core.Program.LoadCodes(FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", true, false);
+                Core.Program.LoadCodes(FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", true, false, false);
             }
             lastMessages = new StringWriter();
             var messageLog = new TextWriterMessageLog(lastMessages);
