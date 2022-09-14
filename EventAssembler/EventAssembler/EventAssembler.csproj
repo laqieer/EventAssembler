@@ -46,6 +46,11 @@
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+		<MauiAsset Include="..\..\Core\Event-Assembler\Event Assembler\Event Assembler\Language Raws\**" LogicalName="%(RecursiveDir)%(Filename).LanguageRaws0%(Extension)" />
+		<MauiAsset Include="..\..\Core\Event-Assembler\Event Assembler\Event Assembler\EA Standard Library\**" LogicalName="StandardLibrary0-%(RecursiveDir)%(Filename)%(Extension)" />
+		<MauiAsset Include="..\..\Library\EAStandardLibrary\Language Raws\**" LogicalName="%(RecursiveDir)%(Filename).LanguageRaws1%(Extension)" />
+		<MauiAsset Include="..\..\Library\EAStandardLibrary\EA Standard Library\**" LogicalName="StandardLibrary1-%(RecursiveDir)%(Filename)%(Extension)" />
+		<MauiAsset Include="..\..\Library\EAStandardLibrary\Extensions\**" LogicalName="StandardLibrary1-%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>

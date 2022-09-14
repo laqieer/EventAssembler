@@ -10,32 +10,45 @@
             VerticalOptions="Center">
 
             <Button
-                x:Name="LibraryBtn"
-                Text="Select Library"
-                SemanticProperties.Hint="Select language raws"
-                Clicked="OnLibraryClicked"
-                HorizontalOptions="Center" />
-
-            <Button
                 x:Name="BinaryBtn"
-                Text="Select Game"
+                Text="Open game"
                 SemanticProperties.Hint="Select game ROM"
                 Clicked="OnBinaryClicked"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="TextBtn"
-                Text="Select Script"
+                Text="Open script"
                 SemanticProperties.Hint="Select event script"
                 Clicked="OnTextClicked"
                 HorizontalOptions="Center" />
 
-            <HorizontalStackLayout
+            <Picker 
+                x:Name="CorePicker"
+                Title="Select core"
                 HorizontalOptions="Center">
-                <Label Text="Use ColorzCore (Slow)" />
-                <CheckBox
-                    x:Name="useColorzCore" />
-            </HorizontalStackLayout>
+                <Picker.Items>
+                    <x:String>Official</x:String>
+                    <x:String>ColorzCore</x:String>
+                </Picker.Items>
+            </Picker>
+
+            <Picker 
+                x:Name="LibraryPicker"
+                Title="Select language raw version"
+                HorizontalOptions="Center">
+                <Picker.Items>
+                    <x:String>Official</x:String>
+                    <x:String>Experimental</x:String>
+                </Picker.Items>
+            </Picker>
+
+            <Button
+                x:Name="LanguageRawBtn"
+                Text="Open custom language raw"
+                SemanticProperties.Hint="Open custom language raw file"
+                Clicked="OnLanguageRawClicked"
+                HorizontalOptions="Center" />
 
             <Button
                 x:Name="AssembleBtn"
@@ -54,7 +67,7 @@
 
             <HorizontalStackLayout
                 HorizontalOptions="Center">
-                <Label Text="Full Chapter" />
+                <Label Text="Full chapter" />
                 <CheckBox
                     x:Name="fullChapter"
                     IsChecked="true" />

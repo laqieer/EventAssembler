@@ -10,9 +10,8 @@ namespace EventAssembler;
 
 public partial class MainPage : ContentPage
 {
-    String rawsFolder, textFile, binaryFile, game;
+    String textFile, binaryFile, game;
     StringWriter lastMessages;
-    FileResult scriptFile;
 
     public MainPage()
 	{
@@ -33,7 +32,7 @@ public partial class MainPage : ContentPage
         return await FilePicker.Default.PickAsync(options);
     }
 
-    private async void OnLibraryClicked(object sender, EventArgs e)
+    private async void OnLanguageRawClicked(object sender, EventArgs e)
 	{
         try
         {
@@ -44,22 +43,21 @@ public partial class MainPage : ContentPage
                     {
                             { DevicePlatform.iOS, new[] { "public.plain-text" } },
                             { DevicePlatform.Android, new[] { "text/plain" } },
-                            { DevicePlatform.WinUI, new[] { ".raws", ".txt" } },
+                            { DevicePlatform.WinUI, new[] { ".txt" } },
                             { DevicePlatform.Tizen, new[] { "*/*" } },
-                            { DevicePlatform.macOS, new[] { "raws", "txt" } },
+                            { DevicePlatform.macOS, new[] { "txt" } },
                     }));
             if (result != null)
             {
-                if (result.FileName.EndsWith("raws", StringComparison.OrdinalIgnoreCase) ||
-                    result.FileName.EndsWith("txt", StringComparison.OrdinalIgnoreCase))
+                if (result.FileName.EndsWith("txt", StringComparison.OrdinalIgnoreCase))
                 {
-                    rawsFolder = Path.GetDirectoryName(result.FullPath);
-                    Core.Program.LoadCodes(rawsFolder, ".txt", true, false);
+                    await LoadUserFile(result);
+                    Core.Program.LoadCodes(result.FullPath, ".txt", false, false);
                     InfoText.Text = $"Loaded {result.FullPath}";
                 }
                 else
                 {
-                    InfoText.Text = "Invalid language raw file type, must be *.txt or *.raws";
+                    InfoText.Text = "Invalid language raw file type, must be *.txt";
                 }
             }
         }
@@ -146,8 +144,7 @@ public partial class MainPage : ContentPage
                 if (result.FileName.EndsWith("event", StringComparison.OrdinalIgnoreCase) ||
                     result.FileName.EndsWith("txt", StringComparison.OrdinalIgnoreCase))
                 {
-                    textFile = result.FullPath;
-                    scriptFile = result;
+                    textFile = await LoadUserFile(result);
                     InfoText.Text = $"Loaded {textFile}";
                 }
                 else
@@ -168,10 +165,6 @@ public partial class MainPage : ContentPage
     {
         try
         {
-            if (rawsFolder == null || !Core.Program.CodesLoaded)
-            {
-                throw new Exception("Please select library");
-            }
             if (binaryFile == null || game == null)
             {
                 throw new Exception("Please select game");
@@ -184,11 +177,17 @@ public partial class MainPage : ContentPage
             {
                 throw new Exception("Script file doesn't exist: " + textFile);
             }
-            if (useColorzCore.IsChecked)
+            if (LibraryPicker.SelectedIndex == -1)
             {
+                throw new Exception("Please select library");
+            }
+            await LoadStandardLibrary();
+            if (CorePicker.SelectedIndex == 1)
+            {
+                await LoadLanguageRaws();
                 StringBuilder sb = new StringBuilder();
                 TextWriter errorStream = new StringWriter(sb);
-                var inStream = await scriptFile.OpenReadAsync();
+                var inStream = File.OpenRead(textFile);
                 IOutput output = new ROM(File.Open(binaryFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None));
                 Log log = new()
                 {
@@ -196,7 +195,7 @@ public partial class MainPage : ContentPage
                     WarningsAreErrors = false,
                     NoColoredTags = true
                 };
-                EAInterpreter myInterpreter = new EAInterpreter(output, game, rawsFolder, ".txt", inStream, textFile, log);
+                EAInterpreter myInterpreter = new EAInterpreter(output, game, FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", inStream, textFile, log);
                 bool success = myInterpreter.Interpret();
                 inStream.Close();
                 output.Close();
@@ -205,12 +204,22 @@ public partial class MainPage : ContentPage
             }
             else
             {
+                if (!Core.Program.CodesLoaded)
+                {
+                    await LoadLanguageRaws();
+                    Core.Program.LoadCodes(FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", true, false);
+                }
                 lastMessages = new StringWriter();
                 var messageLog = new TextWriterMessageLog(lastMessages);
                 Core.Program.Assemble(textFile, binaryFile, game, messageLog);
                 messageLog.PrintAll();
                 InfoText.Text = lastMessages.ToString();
-            } 
+            }
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = "Share game ROM",
+                File = new ShareFile(binaryFile)
+            });
         }
         catch (Exception ex)
         {
@@ -219,31 +228,42 @@ public partial class MainPage : ContentPage
 
         SemanticScreenReader.Announce(InfoText.Text);
     }
-    private void OnDisassembleClicked(object sender, EventArgs e)
+    private async void OnDisassembleClicked(object sender, EventArgs e)
     {
         try
         {
-            if (!Core.Program.CodesLoaded)
+            if (CorePicker.SelectedIndex == 1)
             {
-                throw new Exception("Please select library");
+                throw new Exception("Selected core doesn't support to disassemble");
             }
             if (binaryFile == null || game == null)
             {
                 throw new Exception("Please select game");
             }
-            if (textFile == null)
-            {
-                throw new Exception("Please select script");
-            }
             if (offsetEntry.Text == null)
             {
                 throw new Exception("Please input offset");
             }
+            if (LibraryPicker.SelectedIndex == -1)
+            {
+                throw new Exception("Please select library");
+            }
+            if (!Core.Program.CodesLoaded)
+            {
+                await LoadLanguageRaws();
+                Core.Program.LoadCodes(FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", true, false);
+            }
             lastMessages = new StringWriter();
             var messageLog = new TextWriterMessageLog(lastMessages);
-            Core.Program.Disassemble(binaryFile, textFile, game, true, fullChapter.IsChecked ? DisassemblyMode.Structure : DisassemblyMode.ToEnd, Convert.ToInt32(offsetEntry.Text, 16), Priority.none, 4096, messageLog);
+            var outputFile = Path.Combine(FileSystem.CacheDirectory, Path.GetFileNameWithoutExtension(Path.GetRandomFileName()) + ".txt"); 
+            Core.Program.Disassemble(binaryFile, outputFile, game, true, fullChapter.IsChecked ? DisassemblyMode.Structure : DisassemblyMode.ToEnd, Convert.ToInt32(offsetEntry.Text, 16), Priority.none, 4096, messageLog);
             messageLog.PrintAll();
             InfoText.Text = lastMessages.ToString();
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = "Share event script",
+                File = new ShareFile(Path.Combine(outputFile))
+            });
         }
         catch (Exception ex)
         {
@@ -251,6 +271,79 @@ public partial class MainPage : ContentPage
         }
 
         SemanticScreenReader.Announce(InfoText.Text);
+    }
+
+    public async Task<string> LoadUserFile(FileResult file)
+    {
+        // Read the source file
+        using Stream fileStream = await file.OpenReadAsync();
+        using StreamReader reader = new StreamReader(fileStream);
+
+        string content = await reader.ReadToEndAsync();
+
+        // Write the file content to the app data directory
+        string targetFile = Path.Combine(FileSystem.Current.CacheDirectory, Path.GetFileName(file.FileName));
+
+        using FileStream outputStream = File.Open(targetFile, FileMode.Create, FileAccess.Write, FileShare.Read);
+        using StreamWriter streamWriter = new StreamWriter(outputStream);
+
+        await streamWriter.WriteAsync(content);
+
+        return targetFile;
+    }
+
+    public async Task LoadResource(string sourcePath, string targetPath)
+    {
+        // Read the source file
+        using Stream fileStream = await FileSystem.Current.OpenAppPackageFileAsync(sourcePath);
+        using StreamReader reader = new StreamReader(fileStream);
+
+        string content = await reader.ReadToEndAsync();
+
+        // Write the file content to the app data directory
+        string targetFile = Path.Combine(FileSystem.Current.CacheDirectory, targetPath.Replace('/', '-').Replace('\\', '-'));
+
+        using FileStream outputStream = File.Open(targetFile, FileMode.Create, FileAccess.Write, FileShare.Read);
+        using StreamWriter streamWriter = new StreamWriter(outputStream);
+
+        await streamWriter.WriteAsync(content);
+    }
+
+    public async Task LoadLanguageRaws()
+    {
+        using Stream fileStream = await FileSystem.Current.OpenAppPackageFileAsync($"LanguageRaws{LibraryPicker.SelectedIndex}.txt");
+        using StreamReader reader = new StreamReader(fileStream);
+
+        while (true)
+        {
+            var filePath = reader.ReadLine();
+            if (filePath == null)
+                break;
+            filePath = filePath.Trim();
+            if (filePath == "")
+                break;
+            filePath = filePath.Replace(".txt", $".LanguageRaws{LibraryPicker.SelectedIndex}.txt");
+            await LoadResource(filePath, filePath);
+        }
+    }
+
+    public async Task LoadStandardLibrary()
+    {
+        using Stream fileStream = await FileSystem.Current.OpenAppPackageFileAsync($"StandardLibrary{LibraryPicker.SelectedIndex}.txt");
+        using StreamReader reader = new StreamReader(fileStream);
+
+        while (true)
+        {
+            var filePath = reader.ReadLine();
+            if (filePath == null)
+                break;
+            filePath = filePath.Trim();
+            if (filePath == "")
+                break;
+            await LoadResource($"StandardLibrary{LibraryPicker.SelectedIndex}-" + filePath, filePath);
+        }
+
+        await LoadResource($"EAstdlib{LibraryPicker.SelectedIndex}.txt", "EAstdlib.event");
     }
 }
 
