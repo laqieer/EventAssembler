@@ -28,7 +28,10 @@ public partial class MainPage : ContentPage
             PickerTitle = $"Please select {title} file",
             FileTypes = fileType,
         };
-
+        // Workaround for: https://github.com/dotnet/maui/issues/9394
+#if MACCATALYST
+        options = null;
+#endif
         return await FilePicker.Default.PickAsync(options);
     }
 
