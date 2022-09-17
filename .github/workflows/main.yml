@@ -1,7 +1,6 @@
 name: DeployToGitHubPages
 env:
-  PROJECT_DIR: EventAssembler/EventAssemblerWeb
-  PUBLISH_DIR: bin/Release/net6.0/publish/wwwroot
+  PUBLISH_DIR: EventAssembler/EventAssemblerWeb/bin/Release/net6.0/publish/wwwroot
 
 # Controls when the action will run
 on:
@@ -10,7 +9,7 @@ on:
 
 defaults:
   run:
-    working-directory: ${{ env.PROJECT_DIR }}
+    working-directory: EventAssembler/EventAssemblerWeb
 
 jobs:
   build:
@@ -26,7 +25,7 @@ jobs:
     - name: Rewrite base href
       uses: SteveSandersonMS/ghaction-rewrite-base-href@v1.1.0
       with:
-        html_path: ${{ env.PROJECT_DIR }}/${{ env.PUBLISH_DIR }}/index.html
+        html_path: ${{ env.PUBLISH_DIR }}/index.html
         base_href: /EventAssembler/
 
     - name: GitHub Pages
@@ -34,6 +33,6 @@ jobs:
       uses: crazy-max/ghaction-github-pages@v3
       with:
         target_branch: gh-pages
-        build_dir: ${{ env.PROJECT_DIR }}/${{ env.PUBLISH_DIR }}
+        build_dir: ${{ env.PUBLISH_DIR }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
