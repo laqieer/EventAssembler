@@ -171,11 +171,11 @@ public partial class MainPage : ContentPage
         {
             if (binaryFile == null || game == null)
             {
-                throw new Exception("Please select game");
+                throw new Exception("Please open game");
             }
             if (textFile == null)
             {
-                throw new Exception("Please select script");
+                throw new Exception("Please open script");
             }
             if (!File.Exists(textFile))
             {
@@ -192,7 +192,7 @@ public partial class MainPage : ContentPage
                 StringBuilder sb = new StringBuilder();
                 TextWriter errorStream = new StringWriter(sb);
                 var inStream = File.OpenRead(textFile);
-                IOutput output = new ROM(File.Open(binaryFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None));
+                IOutput output = new ROM(File.Open(binaryFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None));
                 Log log = new()
                 {
                     Output = errorStream,
@@ -204,7 +204,7 @@ public partial class MainPage : ContentPage
                 inStream.Close();
                 output.Close();
                 errorStream.Close();
-                InfoText.Text = success ? "success": "failure" + Environment.NewLine + sb.ToString();
+                InfoText.Text = success ? "success": "fail" + Environment.NewLine + sb.ToString();
             }
             else
             {
@@ -242,7 +242,7 @@ public partial class MainPage : ContentPage
             }
             if (binaryFile == null || game == null)
             {
-                throw new Exception("Please select game");
+                throw new Exception("Please open game");
             }
             if (offsetEntry.Text == null)
             {

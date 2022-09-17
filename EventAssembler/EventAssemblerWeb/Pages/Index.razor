@@ -1,0 +1,291 @@
+﻿@page "/"
+@using System.Text
+@using System.IO
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+@using Microsoft.Extensions.Logging
+@inject ILogger<Index> Logger
+
+@using Nintenlord.Event_Assembler.Core;
+@using Nintenlord.Event_Assembler.Core.Code.Language;
+@using Core = Nintenlord.Event_Assembler.Core;
+@using Nintenlord.Event_Assembler.Core.IO.Logs;
+@using ColorzCore;
+@using ColorzCore.IO;
+
+<PageTitle>Event Assembler</PageTitle>
+
+<p>
+    <label>
+        Open game:
+        <InputFile OnChange="@LoadGame" />
+    </label>
+</p>
+
+@if (isGameLoading)
+{
+    <p>Loading...</p>
+}
+else
+{
+    if (gameFile != null)
+    {
+        <p>@game</p>
+    }
+}
+
+<p>
+    <label>
+        Open script:
+        <InputFile OnChange="@LoadScript" />
+    </label>
+</p>
+
+<EditForm Model="model">
+    Select Core:
+    <InputSelect @bind-Value="model.EACore">
+        @foreach (var value in Enum.GetValues(typeof(EACore)))
+        {
+            <option>@value</option>
+        }
+    </InputSelect>
+</EditForm>
+
+<p>
+    <button @onclick="Assemble">
+        Assemble
+    </button>
+</p>
+
+<p>
+    Offset: 0x
+    <input @bind="offset" />
+</p>
+
+<p>
+    Size: 0x
+    <input @bind="size" />
+</p>
+
+<EditForm Model="model">
+    Disassemble Mode:
+    <InputSelect @bind-Value="model.DisassemblyMode">
+        @foreach (var value in Enum.GetValues(typeof(DisassemblyMode)))
+        {
+            <option>@value</option>
+        }
+    </InputSelect>
+</EditForm>
+
+<p>
+    <button @onclick="Disassemble">
+        Disassemble
+    </button>
+</p>
+
+@code {
+    private IJSObjectReference? module;
+    private IBrowserFile gameFile, scriptFile;
+    private string game = "";
+    private bool isGameLoading;
+    private int maxGameSize = 32 * 1024 * 1024;
+    private string library = "EAStandardLibrary-master";
+    private StringWriter lastMessages;
+    private string offset = "1000000";
+    private string size = "400";
+
+    Model model = new Model();
+
+    class Model
+    {
+        public EACore EACore { get; set; }
+        public DisassemblyMode DisassemblyMode { get; set; }
+    }
+
+    enum EACore
+    {
+        Official,
+        ColorzCore,
+    }
+
+    private async Task DownloadFileTaskAsync(HttpClient client, string fileUrl, string FileName)
+    {
+        using (var s = await client.GetStreamAsync(fileUrl))
+        {
+            using (var fs = new FileStream(FileName, FileMode.CreateNew))
+            {
+                await s.CopyToAsync(fs);
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./Pages/Index.razor.js");
+            await DownloadLibrary();
+            Core.Program.LoadCodes(Path.Combine(library, "Language Raws"), ".txt", true, true, false);
+        }
+    }
+
+    private async Task DownloadLibrary()
+    {
+        // Source: https://github.com/StanHash/EAStandardLibrary/archive/refs/heads/master.zip
+        // We cannot download it directly due to CORS
+        var fileName = library + ".zip";
+        var fileUrl = NavigationManager.Uri + fileName;
+        using (var client = new System.Net.Http.HttpClient())
+        {
+            await DownloadFileTaskAsync(client, fileUrl, fileName);
+        }
+        System.IO.Compression.ZipFile.ExtractToDirectory(fileName, "/");
+    }
+
+    private async Task LoadGame(InputFileChangeEventArgs e)
+    {
+        isGameLoading = true;
+
+        try
+        {
+            gameFile = e.File;
+
+            var gameStream = gameFile.OpenReadStream(maxGameSize);
+            var buffer = new byte[0xB0];
+            await gameStream.ReadAsync(buffer, 0, buffer.Length);
+            var buff = new byte[4];
+            Array.Copy(buffer, buffer.Length - buff.Length, buff, 0, buff.Length);
+            var code = Encoding.Default.GetString(buff);
+            var codes = new Dictionary<string, string> {
+                        { "AFEJ", "FE6" },
+                        { "AE7E", "FE7" },
+                        { "BE8E", "FE8" },
+                        { "AE7J", "FE7J" },
+                        { "BE8J", "FE8J" },
+                    };
+            if (!codes.ContainsKey(code))
+                throw new Exception("Unsupported game: " + code);
+            game = codes[code];
+            gameStream.Close();
+            await using FileStream fs = new(gameFile.Name, FileMode.Create);
+            await gameFile.OpenReadStream(maxGameSize).CopyToAsync(fs);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Game: {Filename} Error: {Error}",
+                gameFile.Name, ex.Message);
+        }
+
+        isGameLoading = false;
+    }
+
+    private async Task LoadScript(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            scriptFile = e.File;
+            await using FileStream fs = new(Path.Combine(library, scriptFile.Name), FileMode.Create);
+            await scriptFile.OpenReadStream().CopyToAsync(fs);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Script: {Filename} Error: {Error}",
+                scriptFile.Name, ex.Message);
+        }
+    }
+
+    private async Task Assemble()
+    {
+        if (gameFile == null)
+        {
+            await JS.InvokeVoidAsync("alert", "Please open game!");
+            return;
+        }
+        if (scriptFile == null)
+        {
+            await JS.InvokeVoidAsync("alert", "Please open script!");
+            return;
+        }
+        switch (model.EACore)
+        {
+            case EACore.ColorzCore:
+                StringBuilder sb = new StringBuilder();
+                TextWriter errorStream = new StringWriter(sb);
+                var inStream = File.OpenRead(Path.Combine(library, scriptFile.Name));
+                var outStream = File.Open(gameFile.Name, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                IOutput output = new ROM(outStream);
+                Log log = new()
+                {
+                    Output = errorStream,
+                    WarningsAreErrors = false,
+                    NoColoredTags = true
+                };
+                EAInterpreter myInterpreter = new EAInterpreter(output, game, Path.Combine(library, "Language Raws"), true, ".txt", inStream, Path.Combine(library, scriptFile.Name), log);
+                bool success = myInterpreter.Interpret();
+                inStream.Close();
+                errorStream.Close();
+                if (success)
+                {
+                    outStream.Seek(0, SeekOrigin.Begin);
+                    using var streamRef = new DotNetStreamReference(stream: outStream);
+                    if (module != null)
+                    {
+                        await module.InvokeVoidAsync("downloadFileFromStream", gameFile.Name, streamRef);
+                    }
+                }
+                output.Close();
+                await JS.InvokeVoidAsync("alert", success ? "success" : "fail" + Environment.NewLine + sb.ToString());
+                break;
+            default:
+            case EACore.Official:
+                lastMessages = new StringWriter();
+                var messageLog = new TextWriterMessageLog(lastMessages);
+                Core.Program.Assemble(Path.Combine(library, scriptFile.Name), gameFile.Name, game, messageLog);
+                messageLog.PrintAll();
+                if (lastMessages.ToString().Contains("No errors or warnings"))
+                {
+                    await using FileStream fs = new(gameFile.Name, FileMode.Open);
+                    using var streamRef = new DotNetStreamReference(stream: fs);
+                    if (module != null)
+                    {
+                        await module.InvokeVoidAsync("downloadFileFromStream", gameFile.Name, streamRef);
+                    }
+                }
+                await JS.InvokeVoidAsync("alert", lastMessages.ToString());
+                break;
+        }
+    }
+
+    private async Task Disassemble()
+    {
+        if (gameFile == null)
+        {
+            await JS.InvokeVoidAsync("alert", "Please open game!");
+            return;
+        }
+        switch (model.EACore)
+        {
+            case EACore.ColorzCore:
+                await JS.InvokeVoidAsync("alert", "Selected core doesn't support to disassemble");
+                break;
+            default:
+            case EACore.Official:
+                lastMessages = new StringWriter();
+                var messageLog = new TextWriterMessageLog(lastMessages);
+                var outputFile = $"{gameFile.Name}_0x{offset}.txt";
+                Core.Program.Disassemble(gameFile.Name, outputFile, game, true, model.DisassemblyMode, Convert.ToInt32(offset, 16), Priority.none, Convert.ToInt32(size, 16), messageLog);
+                messageLog.PrintAll();
+                if (lastMessages.ToString().Contains("No errors or warnings"))
+                {
+                    await using FileStream fs = new(outputFile, FileMode.Open);
+                    using var streamRef = new DotNetStreamReference(stream: fs);
+                    if (module != null)
+                    {
+                        await module.InvokeVoidAsync("downloadFileFromStream", outputFile, streamRef);
+                    }
+                }
+                await JS.InvokeVoidAsync("alert", lastMessages.ToString());
+                break;
+        }
+    }
+}

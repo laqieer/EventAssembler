@@ -5,11 +5,13 @@ VisualStudioVersion = 17.0.31611.283
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EventAssembler", "EventAssembler\EventAssembler.csproj", "{8E77B231-534F-4380-A3B3-31BECB19C083}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "..\Core\Event-Assembler\Event Assembler\Core\Core.csproj", "{224C71E2-5E52-4910-910A-6FA9C2F937BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "..\Core\Event-Assembler\Event Assembler\Core\Core.csproj", "{224C71E2-5E52-4910-910A-6FA9C2F937BE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nintenlord", "..\Core\Event-Assembler\Nintenlord\Nintenlord.csproj", "{8FA48EF8-3E11-494A-B587-592D7C22EFDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nintenlord", "..\Core\Event-Assembler\Nintenlord\Nintenlord.csproj", "{8FA48EF8-3E11-494A-B587-592D7C22EFDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ColorzCore", "..\Core\ColorzCore\ColorzCore\ColorzCore.csproj", "{B98F7CCF-9CAA-406E-88D7-2040FA99F631}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ColorzCore", "..\Core\ColorzCore\ColorzCore\ColorzCore.csproj", "{B98F7CCF-9CAA-406E-88D7-2040FA99F631}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventAssemblerWeb", "EventAssemblerWeb\EventAssemblerWeb.csproj", "{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +77,18 @@ Global
 		{B98F7CCF-9CAA-406E-88D7-2040FA99F631}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B98F7CCF-9CAA-406E-88D7-2040FA99F631}.Release|x86.ActiveCfg = Release|Any CPU
 		{B98F7CCF-9CAA-406E-88D7-2040FA99F631}.Release|x86.Build.0 = Release|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.32bit|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.32bit|Any CPU.Build.0 = Debug|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.32bit|x86.ActiveCfg = Debug|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.32bit|x86.Build.0 = Debug|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.Debug|x86.Build.0 = Debug|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.Release|x86.ActiveCfg = Release|Any CPU
+		{A4A5CCFB-EEF9-4B92-8F25-CA5BB01515CF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
