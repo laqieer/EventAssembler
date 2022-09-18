@@ -1,5 +1,5 @@
 # EventAssembler
-Event Assembler's Multi-platform App on Windows, macOS, Android, iOS and Web.
+[Event Assembler](https://femodding.fandom.com/wiki/Event_Assembler)'s Multi-platform App on Windows, macOS, Android, iOS and Web.
 
 <img height="300" src="https://user-images.githubusercontent.com/8841957/190300375-7d951a49-f519-4914-9474-004c65c5aeb4.png"><img height="300" src="https://user-images.githubusercontent.com/8841957/190299003-3abb3dcf-caf4-442c-a494-c12bd6465162.png">
 
