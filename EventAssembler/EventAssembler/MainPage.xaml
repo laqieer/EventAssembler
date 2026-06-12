@@ -57,6 +57,13 @@
                 Clicked="OnAssembleClicked"
                 HorizontalOptions="Center" />
 
+            <Button
+                x:Name="CompileBtn"
+                Text="Compile"
+                SemanticProperties.Hint="Compile event script to assembly source"
+                Clicked="OnCompileClicked"
+                HorizontalOptions="Center" />
+
             <HorizontalStackLayout
                 HorizontalOptions="Center">
                 <Label Text="Offset:" />

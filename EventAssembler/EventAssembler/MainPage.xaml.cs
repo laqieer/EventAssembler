@@ -232,6 +232,98 @@ public partial class MainPage : ContentPage
 
         SemanticScreenReader.Announce(InfoText.Text);
     }
+
+    private async void OnCompileClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            if (binaryFile == null || game == null)
+            {
+                throw new Exception("Please open game to detect the FE version");
+            }
+            if (textFile == null)
+            {
+                throw new Exception("Please open script");
+            }
+            if (!File.Exists(textFile))
+            {
+                throw new Exception("Script file doesn't exist: " + textFile);
+            }
+            if (LibraryPicker.SelectedIndex == -1)
+            {
+                throw new Exception("Please select library");
+            }
+
+            await LoadStandardLibrary();
+
+            string outputFile = Path.Combine(
+                FileSystem.CacheDirectory,
+                Path.GetFileNameWithoutExtension(textFile) + (CorePicker.SelectedIndex == 1 ? ".aa.s" : ".c.s"));
+
+            if (CorePicker.SelectedIndex == 1)
+            {
+                await LoadLanguageRaws();
+                StringBuilder sb = new StringBuilder();
+                TextWriter errorStream = new StringWriter(sb);
+                using var inStream = File.OpenRead(textFile);
+                IOutput output = new ASM(new StreamWriter(outputFile, false),
+                                         new StreamWriter(Path.ChangeExtension(outputFile, "lds"), false));
+                Logger log = new()
+                {
+                    Output = errorStream,
+                    WarningsAreErrors = false,
+                    NoColoredTags = true
+                };
+                EADriver driver = new EADriver(output, game, FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", inStream, textFile, log);
+                bool success = driver.Interpret();
+                output.Close();
+                errorStream.Close();
+                InfoText.Text = success ? "success" : "fail" + Environment.NewLine + sb.ToString();
+
+                if (success)
+                {
+                    await Share.Default.RequestAsync(new ShareMultipleFilesRequest
+                    {
+                        Title = "Share assembly sources",
+                        Files = new List<ShareFile>
+                        {
+                            new ShareFile(outputFile),
+                            new ShareFile(Path.ChangeExtension(outputFile, "lds"))
+                        }
+                    });
+                }
+            }
+            else
+            {
+                if (!Core.Program.CodesLoaded)
+                {
+                    await LoadLanguageRaws();
+                    Core.Program.LoadCodes(FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", true, false, false);
+                }
+                lastMessages = new StringWriter();
+                var messageLog = new TextWriterMessageLog(lastMessages);
+                Core.Program.Compile(textFile, outputFile, game, true, messageLog);
+                messageLog.PrintAll();
+                InfoText.Text = lastMessages.ToString();
+
+                if (lastMessages.ToString().Contains("No errors or warnings"))
+                {
+                    await Share.Default.RequestAsync(new ShareFileRequest
+                    {
+                        Title = "Share assembly source",
+                        File = new ShareFile(outputFile)
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            InfoText.Text = ex.ToString();
+        }
+
+        SemanticScreenReader.Announce(InfoText.Text);
+    }
+
     private async void OnDisassembleClicked(object sender, EventArgs e)
     {
         try

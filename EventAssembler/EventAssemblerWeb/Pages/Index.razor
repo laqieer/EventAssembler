@@ -55,6 +55,9 @@ else
     <button @onclick="Assemble">
         Assemble
     </button>
+    <button @onclick="Compile">
+        Compile (.s)
+    </button>
 </p>
 
 <p>
@@ -253,6 +256,80 @@ else
                 }
                 await JS.InvokeVoidAsync("alert", lastMessages.ToString());
                 break;
+        }
+    }
+
+    private async Task DownloadPath(string fileName)
+    {
+        await using FileStream fs = new(fileName, FileMode.Open);
+        using var streamRef = new DotNetStreamReference(stream: fs);
+        if (module != null)
+        {
+            await module.InvokeVoidAsync("downloadFileFromStream", Path.GetFileName(fileName), streamRef);
+        }
+    }
+
+    private async Task Compile()
+    {
+        if (gameFile == null)
+        {
+            await JS.InvokeVoidAsync("alert", "Please open game to detect the FE version!");
+            return;
+        }
+        if (scriptFile == null)
+        {
+            await JS.InvokeVoidAsync("alert", "Please open script!");
+            return;
+        }
+
+        var inputFile = Path.Combine(library, scriptFile.Name);
+        var outputBase = Path.Combine(library, Path.GetFileNameWithoutExtension(scriptFile.Name));
+        var outputFile = outputBase + (model.EACore == EACore.ColorzCore ? ".aa.s" : ".c.s");
+
+        switch (model.EACore)
+        {
+            case EACore.ColorzCore:
+                {
+                    StringBuilder sb = new StringBuilder();
+                    TextWriter errorStream = new StringWriter(sb);
+                    await using var inStream = File.OpenRead(inputFile);
+                    IOutput output = new ASM(new StreamWriter(outputFile, false),
+                                             new StreamWriter(Path.ChangeExtension(outputFile, "lds"), false));
+                    Logger log = new()
+                    {
+                        Output = errorStream,
+                        WarningsAreErrors = false,
+                        NoColoredTags = true
+                    };
+                    EADriver driver = new EADriver(output, game, Path.Combine(library, "Language Raws"), ".txt", inStream, inputFile, log);
+                    bool success = driver.Interpret();
+                    output.Close();
+
+                    if (success)
+                    {
+                        await DownloadPath(outputFile);
+                        await DownloadPath(Path.ChangeExtension(outputFile, "lds"));
+                    }
+
+                    await JS.InvokeVoidAsync("alert", success ? "success" : "fail" + Environment.NewLine + sb.ToString());
+                    break;
+                }
+            default:
+            case EACore.Official:
+                {
+                    lastMessages = new StringWriter();
+                    var messageLog = new TextWriterMessageLog(lastMessages);
+                    Core.Program.Compile(inputFile, outputFile, game, true, messageLog);
+                    messageLog.PrintAll();
+
+                    if (lastMessages.ToString().Contains("No errors or warnings"))
+                    {
+                        await DownloadPath(outputFile);
+                    }
+
+                    await JS.InvokeVoidAsync("alert", lastMessages.ToString());
+                    break;
+                }
         }
     }
 
