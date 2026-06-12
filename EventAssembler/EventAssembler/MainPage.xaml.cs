@@ -192,15 +192,15 @@ public partial class MainPage : ContentPage
                 StringBuilder sb = new StringBuilder();
                 TextWriter errorStream = new StringWriter(sb);
                 var inStream = File.OpenRead(textFile);
-                IOutput output = new ROM(File.Open(binaryFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None));
-                Log log = new()
+                IOutput output = new ROM(File.Open(binaryFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None), EAOptions.MaximumBinarySize);
+                Logger log = new()
                 {
                     Output = errorStream,
                     WarningsAreErrors = false,
                     NoColoredTags = true
                 };
-                EAInterpreter myInterpreter = new EAInterpreter(output, game, FileSystem.Current.CacheDirectory, false, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", inStream, textFile, log);
-                bool success = myInterpreter.Interpret();
+                EADriver driver = new EADriver(output, game, FileSystem.Current.CacheDirectory, $".LanguageRaws{LibraryPicker.SelectedIndex}.txt", inStream, textFile, log);
+                bool success = driver.Interpret();
                 inStream.Close();
                 output.Close();
                 errorStream.Close();
@@ -350,4 +350,3 @@ public partial class MainPage : ContentPage
         await LoadResource($"EAstdlib{LibraryPicker.SelectedIndex}.txt", "EAstdlib.event");
     }
 }
-

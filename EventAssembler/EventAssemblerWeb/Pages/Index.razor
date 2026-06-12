@@ -213,15 +213,15 @@ else
                 TextWriter errorStream = new StringWriter(sb);
                 var inStream = File.OpenRead(Path.Combine(library, scriptFile.Name));
                 var outStream = File.Open(gameFile.Name, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-                IOutput output = new ROM(outStream);
-                Log log = new()
+                IOutput output = new ROM(outStream, EAOptions.MaximumBinarySize);
+                Logger log = new()
                 {
                     Output = errorStream,
                     WarningsAreErrors = false,
                     NoColoredTags = true
                 };
-                EAInterpreter myInterpreter = new EAInterpreter(output, game, Path.Combine(library, "Language Raws"), true, ".txt", inStream, Path.Combine(library, scriptFile.Name), log);
-                bool success = myInterpreter.Interpret();
+                EADriver driver = new EADriver(output, game, Path.Combine(library, "Language Raws"), ".txt", inStream, Path.Combine(library, scriptFile.Name), log);
+                bool success = driver.Interpret();
                 inStream.Close();
                 errorStream.Close();
                 if (success)
