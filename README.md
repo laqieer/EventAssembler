@@ -16,3 +16,12 @@
 ## [Installer](https://github.com/laqieer/EventAssembler/releases/latest)
 ## [User's Guide](https://github.com/laqieer/EventAssembler/wiki/User's-Guide)
 ## [Developer's Guide](https://github.com/laqieer/EventAssembler/wiki/Developer's-Guide)
+
+## Development
+
+Building from source requires the .NET 10 SDK and the workloads for the target
+platform. Clone submodules recursively, or initialize them after cloning:
+
+```powershell
+git submodule update --init --recursive
+```
