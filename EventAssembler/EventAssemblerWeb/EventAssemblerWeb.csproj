@@ -4,8 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- ColorzCore is referenced for APIs, not as a runnable app. -->
-    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\ColorzCore\ColorzCore\ColorzCore.csproj" />
+    <!-- Consume ColorzCore APIs without changing its standalone executable output. -->
+    <ProjectReference Include="..\..\Core\ColorzCore\ColorzCore\ColorzCore.csproj" AdditionalProperties="OutputType=Library" />
     <ProjectReference Include="..\..\Core\Event-Assembler\Event Assembler\Core\Core.csproj" />
   </ItemGroup>
 
