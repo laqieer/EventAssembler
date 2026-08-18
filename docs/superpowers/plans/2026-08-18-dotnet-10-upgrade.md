@@ -252,7 +252,6 @@ if ($matches.Count -gt 0) {
   $matches
   throw "Legacy .NET 6 settings remain"
 }
-exit 0
 ```
 
 Expected: exit code 0 with no output.
